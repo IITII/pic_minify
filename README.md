@@ -21,7 +21,7 @@
  * @param output 输出基本文件夹，如果为空默认为输入基本目录加上 suffix
  * @param limit 转换并发上限
  * @param skipIfLarge 转换后文件如果变大使用源文件
- * @param minSize 最小文件大小，默认 1.5MB
+ * @param minSize 最小文件大小，默认 1MB
  * @param logger 默认console
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
 ```
@@ -62,7 +62,7 @@ convert(input, regex, output)
 ```js
 'use strict'
 const path = require('path'),
-    { spendTime, convert } = require('pic_minify')
+    {spendTime, convert} = require('pic_minify')
 const input = path.resolve(__dirname, './tmp/input'),
     regex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
     output = path.resolve(__dirname, './tmp/output/sub_output')

@@ -96,7 +96,7 @@ async function spendTime(logger, prefix = '', func, ...args) {
  * @param output 输出基本文件夹，如果为空默认为输入基本目录加上 suffix
  * @param limit 转换并发上限
  * @param skipIfLarge 转换后文件如果变大使用源文件
- * @param minSize 最小文件大小，默认 1.5MB
+ * @param minSize 最小文件大小，默认 1MB
  * @param logger 默认console
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
  */
@@ -104,7 +104,7 @@ async function convert(input,
                        output = '',
                        iRegex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
                        skipIfLarge = true,
-                       minSize = 1.5 * 1024 * 1024,
+                       minSize = 1024 * 1024,
                        limit = os.cpus().length - 1,
                        logger = console) {
     if (!fs.statSync(input).isDirectory()) {
