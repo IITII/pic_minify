@@ -1,12 +1,17 @@
 {
   "name": "pic_minify",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Image convertor base on imagemin",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "pic_minify",
+    "async",
+    "mapLimit",
+    "imagemin"
+  ],
   "author": "IITII <ccmejx@gmail.com>",
   "license": "ISC",
   "devDependencies": {

@@ -1,6 +1,11 @@
 ## pic_minify
 
+> [https://github.com/IITII/pic_minify](https://github.com/IITII/pic_minify)
+
 * 基于 imagemin 的本地化图片有损压缩工具
+* 支持主流图片格式，png，jpg，jpeg，gif，svg
+* 并发转换，默认使用 cpu 核数 -1 为并发上限，最低为1
+* 支持文件夹递归读取和文件类型和大小筛选
 
 > 有损压缩，压缩率更高  
 > 暂时不考虑开放 imagemin 的配置，欢迎PR

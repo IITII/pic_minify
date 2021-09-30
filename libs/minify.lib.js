@@ -100,21 +100,23 @@ async function spendTime(logger, prefix = '', func, ...args) {
  * @param logger 默认console
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
  */
-async function convert(input, iRegex, output,
-                       limit = os.cpus().length - 1,
-                       skipIfLarge,
+async function convert(input,
+                       output = '',
+                       iRegex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
+                       skipIfLarge = true,
                        minSize = 1.5 * 1024 * 1024,
+                       limit = os.cpus().length - 1,
                        logger = console) {
     if (!fs.statSync(input).isDirectory()) {
         return logger.error(`${input} should be a dir`)
     }
-    if (fs.statSync(input).isDirectory() && fs.existsSync(output) && fs.statSync(output).isFile()) {
+    if (output !== '' && fs.statSync(input).isDirectory() && fs.existsSync(output) && fs.statSync(output).isFile()) {
         return logger.error(`${output} shouldn't be a file when ${input} is a dir`)
     }
     // 避免核心数过少的机器并发度为0
     limit = limit < 1 ? 1 : limit
     return spendTime(logger, `Readdir ${input}`, readdir, input, iRegex, minSize, logger)
-        .then(f => f.map(_ => convertPath(input, _)))
+        .then(f => f.map(_ => convertPath(input, _, output)))
         // https://caolan.github.io/async/v3/docs.html#mapLimit
         .then(async f => await mapLimit(f, limit, async (item, cb) => {
             const {input, output} = item
