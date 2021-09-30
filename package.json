@@ -1,6 +1,6 @@
 {
   "name": "pic_minify",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "Image convertor base on imagemin",
   "main": "index.js",
   "scripts": {

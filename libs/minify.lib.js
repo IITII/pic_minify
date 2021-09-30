@@ -116,13 +116,20 @@ async function convert(input,
     // 避免核心数过少的机器并发度为0
     limit = limit < 1 ? 1 : limit
     return spendTime(logger, `Readdir ${input}`, readdir, input, iRegex, minSize, logger)
-        .then(f => f.map(_ => convertPath(input, _, output)))
+        .then(res => {
+            return spendTime(logger, `Total Skipped files ${res.skip.length}`, _ => {
+                res.skip
+                    .map(_ => convertPath(input, _, output))
+                    .forEach(sk => spendTime(logger, `Copying Skipped file ${sk.input} to ${sk.output}`, copyFileSync, sk.input, sk.output))
+            })
+                .then(ignore => res.files.map(_ => convertPath(input, _, output)))
+        })
         // https://caolan.github.io/async/v3/docs.html#mapLimit
         .then(async f => await mapLimit(f, limit, async (item, cb) => {
             const {input, output} = item
             return await spendTime(logger, `Minify ${input}`, minify, [input], output)
                 // skip if large
-                .then(files => _skipIfLarge(files, skipIfLarge))
+                .then(files => files.map(_ => _skipIfLarge(files, skipIfLarge)))
                 .finally(cb)
         }))
         // 展开结果
@@ -149,16 +156,22 @@ function convertPath(inputBase, filePath, outputBase = '', suffix = 'minify') {
     return {input, output}
 }
 
-function _skipIfLarge(files, skipIfLarge) {
+function _skipIfLarge(file, skipIfLarge) {
     if (skipIfLarge) {
-        files.forEach(f => {
-            const {sourcePath, destinationPath} = f
-            if (fs.statSync(sourcePath).size < fs.statSync(destinationPath).size) {
-                fs.copyFileSync(sourcePath, destinationPath)
-            }
-        })
+        const {sourcePath, destinationPath} = file
+        if (fs.statSync(sourcePath).size < fs.statSync(destinationPath).size) {
+            copyFileSync(sourcePath, destinationPath)
+        }
     }
-    return files
+    return file
+}
+
+function copyFileSync(sourcePath, destinationPath) {
+    const desDir = path.dirname(destinationPath)
+    if (!fs.existsSync(desDir)) {
+        fs.mkdirSync(desDir, {recursive: true})
+    }
+    fs.copyFileSync(sourcePath, destinationPath)
 }
 
 async function readdir(input, regex, minSize, logger = console) {
@@ -167,6 +180,7 @@ async function readdir(input, regex, minSize, logger = console) {
             regex = new RegExp(regex)
         }
         let fileArr = [],
+            skipped = [],
             fileCount = 0,
             dirCount = 0
 
@@ -178,15 +192,18 @@ async function readdir(input, regex, minSize, logger = console) {
                     continue
                 }
                 if (fs.statSync(filePath).isFile()) {
+                    const relativePath = path.relative(input, filePath)
                     if (filePath.match(regex) !== null) {
                         fileCount++
                         if (fs.statSync(filePath).size > minSize) {
-                            fileArr.push(path.relative(input, filePath))
+                            fileArr.push(relativePath)
                         } else {
                             logger.warn(`File size is too small, skipped. ${filePath}`)
+                            skipped.push(relativePath)
                         }
                     } else {
                         logger.warn(`Skipped ${filePath}`)
+                        skipped.push(relativePath)
                     }
                 } else if (fs.statSync(filePath).isDirectory()) {
                     dirCount++
@@ -199,7 +216,7 @@ async function readdir(input, regex, minSize, logger = console) {
 
         await dfs(input)
         logger.info(`Readdir finished: total dir: ${dirCount}, total file: ${fileCount}, converting file: ${fileArr.length}`)
-        return resolve(fileArr)
+        return resolve({files: fileArr, skip: skipped})
     })
 }
 
