@@ -118,18 +118,20 @@ async function convert(input,
     return spendTime(logger, `Readdir ${input}`, readdir, input, iRegex, minSize, logger)
         .then(res => {
             return spendTime(logger, `Total Skipped files ${res.skip.length}`, _ => {
-                res.skip
-                    .map(_ => convertPath(input, _, output))
-                    .forEach(sk => spendTime(logger, `Copying Skipped file ${sk.input} to ${sk.output}`, copyFileSync, sk.input, sk.output))
+                res.skip.map(_ => convertPath(input, _, output))
+                    .forEach(sk => {
+                        const prefix = `Copying Skipped file ${sk.input} to ${sk.output}`
+                        return spendTime(logger, prefix, copyFileSync, sk.input, sk.output)
+                    })
             })
-                .then(ignore => res.files.map(_ => convertPath(input, _, output)))
+                .then(ignore => res.files.map(_ => convertPath(input, _, output, false)))
         })
         // https://caolan.github.io/async/v3/docs.html#mapLimit
         .then(async f => await mapLimit(f, limit, async (item, cb) => {
             const {input, output} = item
             return await spendTime(logger, `Minify ${input}`, minify, [input], output)
                 // skip if large
-                .then(files => files.map(_ => _skipIfLarge(files, skipIfLarge)))
+                .then(files => files.map(_ => _skipIfLarge(_, skipIfLarge)))
                 .finally(cb)
         }))
         // 展开结果
@@ -142,16 +144,20 @@ async function convert(input,
  * @param inputBase 输入基本目录
  * @param filePath 文件路径
  * @param outputBase 输出基本文件夹，如果为空默认为输入基本目录加上 suffix
+ * @param keepFilename 是否保留输出文件路径的文件名
  * @param suffix 输出文件目录的后缀
  * @returns {{output: string, input: string}}
  */
-function convertPath(inputBase, filePath, outputBase = '', suffix = 'minify') {
+function convertPath(inputBase, filePath, outputBase = '', keepFilename = true, suffix = 'minify') {
     let input = path.resolve(inputBase, filePath),
         output
     if (outputBase === '') {
         output = path.resolve(path.dirname(inputBase), `${path.basename(inputBase)}_${suffix}`, filePath)
     } else {
         output = path.resolve(__dirname, outputBase, filePath)
+    }
+    if (!keepFilename) {
+        output = path.dirname(output)
     }
     return {input, output}
 }
