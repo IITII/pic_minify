@@ -43,10 +43,14 @@
 ```js
 'use strict'
 const path = require('path'),
-    {convert} = require('./libs/minify.lib')
+    {convert} = require('pic_minify')
 const input = path.resolve(__dirname, './tmp/input'),
     regex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
     output = path.resolve(__dirname, './tmp/output/sub_output')
+
+convert(input)
+    .then(f => console.log(f))
+    .catch(e => console.error(e.message))
 
 convert(input, regex, output)
     .then(f => console.log(f))
@@ -58,12 +62,15 @@ convert(input, regex, output)
 ```js
 'use strict'
 const path = require('path'),
-    {spendTime, convert} = require('./libs/minify.lib')
+    { spendTime, convert } = require('pic_minify')
 const input = path.resolve(__dirname, './tmp/input'),
     regex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
     output = path.resolve(__dirname, './tmp/output/sub_output')
 
 spendTime(console, `Convert`, convert, input, regex, output)
+    .then(f => console.log(f))
+    .catch(e => console.error(e.message))
+spendTime(console, `Convert`, convert, input)
     .then(f => console.log(f))
     .catch(e => console.error(e.message))
 ```
