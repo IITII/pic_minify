@@ -23,6 +23,7 @@
  * @param skipIfLarge 转换后文件如果变大使用源文件
  * @param minSize 最小文件大小，默认 1MB
  * @param logger 默认console
+ * @param removeSpecialChar 清理特殊字符
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
 ```
 

@@ -7,6 +7,7 @@ const os = require('os'),
     fs = require('fs'),
     path = require('path'),
     {mapLimit} = require('async'),
+    {copyFileSync,replaceBeforeRenameFileSync} = require('./file_utils'),
     imageminWebp = require('imagemin-webp'),
     // imageminPngquant = require('imagemin-pngquant'),
     // imageminMozjpeg = require('imagemin-mozjpeg'),
@@ -98,6 +99,7 @@ async function spendTime(logger, prefix = '', func, ...args) {
  * @param skipIfLarge 转换后文件如果变大使用源文件
  * @param minSize 最小文件大小，默认 1MB
  * @param logger 默认console
+ * @param removeSpecialChar 清理特殊字符
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
  */
 async function convert(input,
@@ -106,7 +108,8 @@ async function convert(input,
                        skipIfLarge = true,
                        minSize = 1024 * 1024,
                        limit = os.cpus().length - 1,
-                       logger = console) {
+                       logger = console,
+                       removeSpecialChar = true) {
     if (!fs.statSync(input).isDirectory()) {
         return logger.error(`${input} should be a dir`)
     }
@@ -125,6 +128,13 @@ async function convert(input,
                     })
             })
                 .then(ignore => res.files.map(_ => convertPath(input, _, output, false)))
+                .then(files => {
+                    if (removeSpecialChar){
+                        return files.map(f => replaceBeforeRenameFileSync(f))
+                    }else{
+                        return files
+                    }
+                })
         })
         // https://caolan.github.io/async/v3/docs.html#mapLimit
         .then(async f => await mapLimit(f, limit, async (item, cb) => {
@@ -170,14 +180,6 @@ function _skipIfLarge(file, skipIfLarge) {
         }
     }
     return file
-}
-
-function copyFileSync(sourcePath, destinationPath) {
-    const desDir = path.dirname(destinationPath)
-    if (!fs.existsSync(desDir)) {
-        fs.mkdirSync(desDir, {recursive: true})
-    }
-    fs.copyFileSync(sourcePath, destinationPath)
 }
 
 async function readdir(input, regex, minSize, logger = console) {
