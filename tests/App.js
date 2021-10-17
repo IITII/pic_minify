@@ -4,9 +4,10 @@
  */
 'use strict'
 const path = require('path'),
-    {convert, spendTime} = require('../index')
+    {convert, spendTime, formattedDir} = require('../index')
 const input = path.resolve(__dirname, '../tmp')
 
+formattedDir(input)
 spendTime(console, `Convert`, convert, input)
     .then(f => console.log(`Total convert files: ${f.length}`))
     .catch(e => console.error(e.message))

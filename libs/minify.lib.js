@@ -7,7 +7,7 @@ const os = require('os'),
     fs = require('fs'),
     path = require('path'),
     {mapLimit} = require('async'),
-    {copyFileSync,replaceBeforeRenameFileSync} = require('./file_utils'),
+    {readdir, copyFileSync, formattedDir} = require('./file_utils'),
     imageminWebp = require('imagemin-webp'),
     // imageminPngquant = require('imagemin-pngquant'),
     // imageminMozjpeg = require('imagemin-mozjpeg'),
@@ -99,7 +99,6 @@ async function spendTime(logger, prefix = '', func, ...args) {
  * @param skipIfLarge 转换后文件如果变大使用源文件
  * @param minSize 最小文件大小，默认 1MB
  * @param logger 默认console
- * @param removeSpecialChar 清理特殊字符
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
  */
 async function convert(input,
@@ -108,8 +107,7 @@ async function convert(input,
                        skipIfLarge = true,
                        minSize = 1024 * 1024,
                        limit = os.cpus().length - 1,
-                       logger = console,
-                       removeSpecialChar = true) {
+                       logger = console) {
     if (!fs.statSync(input).isDirectory()) {
         return logger.error(`${input} should be a dir`)
     }
@@ -128,13 +126,6 @@ async function convert(input,
                     })
             })
                 .then(ignore => res.files.map(_ => convertPath(input, _, output, false)))
-                .then(files => {
-                    if (removeSpecialChar){
-                        return files.map(f => replaceBeforeRenameFileSync(f))
-                    }else{
-                        return files
-                    }
-                })
         })
         // https://caolan.github.io/async/v3/docs.html#mapLimit
         .then(async f => await mapLimit(f, limit, async (item, cb) => {
@@ -182,53 +173,8 @@ function _skipIfLarge(file, skipIfLarge) {
     return file
 }
 
-async function readdir(input, regex, minSize, logger = console) {
-    return await new Promise(async resolve => {
-        if (typeof regex === 'string') {
-            regex = new RegExp(regex)
-        }
-        let fileArr = [],
-            skipped = [],
-            fileCount = 0,
-            dirCount = 0
-
-        async function dfs(dirPath) {
-            let filePath = ''
-            for (const i of fs.readdirSync(dirPath)) {
-                filePath = dirPath + path.sep + i
-                if (i.startsWith('.')) {
-                    continue
-                }
-                if (fs.statSync(filePath).isFile()) {
-                    const relativePath = path.relative(input, filePath)
-                    if (filePath.match(regex) !== null) {
-                        fileCount++
-                        if (fs.statSync(filePath).size > minSize) {
-                            fileArr.push(relativePath)
-                        } else {
-                            logger.warn(`File size is too small, skipped. ${filePath}`)
-                            skipped.push(relativePath)
-                        }
-                    } else {
-                        logger.warn(`Skipped ${filePath}`)
-                        skipped.push(relativePath)
-                    }
-                } else if (fs.statSync(filePath).isDirectory()) {
-                    dirCount++
-                    await dfs(filePath)
-                } else {
-                    logger.error(`What a fuck thing it is: ${filePath}`)
-                }
-            }
-        }
-
-        await dfs(input)
-        logger.info(`Readdir finished: total dir: ${dirCount}, total file: ${fileCount}, converting file: ${fileArr.length}`)
-        return resolve({files: fileArr, skip: skipped})
-    })
-}
-
 module.exports = {
     spendTime,
     convert,
+    formattedDir,
 }

@@ -8,7 +8,8 @@
 * 支持文件夹递归读取和文件类型和大小筛选
 
 > 有损压缩，压缩率更高  
-> 暂时不考虑开放 imagemin 的配置，欢迎PR
+> 暂时不考虑开放 imagemin 的配置，欢迎PR  
+> 对于一些特殊文件名，如 ()[]{}, 需要先进行格式化
 
 ### API
 
@@ -23,7 +24,6 @@
  * @param skipIfLarge 转换后文件如果变大使用源文件
  * @param minSize 最小文件大小，默认 1MB
  * @param logger 默认console
- * @param removeSpecialChar 清理特殊字符
  * @returns [{data:'',sourcePath:'',destinationPath:''}]
 ```
 
@@ -56,6 +56,18 @@ convert(input)
 convert(input, regex, output)
     .then(f => console.log(f))
     .catch(e => console.error(e.message))
+```
+
+
+### 格式化
+
+```js
+'use strict'
+const path = require('path'),
+    {formattedDir} = require('pic_minify')
+const input = path.resolve(__dirname, './tmp/input')
+
+formattedDir(input)
 ```
 
 * 输出耗时信息
