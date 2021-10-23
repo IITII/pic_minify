@@ -8,12 +8,8 @@ const os = require('os'),
     path = require('path'),
     {mapLimit} = require('async'),
     {readdir, copyFileSync, formattedDir} = require('./file_utils'),
-    imageminWebp = require('imagemin-webp'),
-    // imageminPngquant = require('imagemin-pngquant'),
-    // imageminMozjpeg = require('imagemin-mozjpeg'),
-    imageminGifsicle = require('imagemin-gifsicle')
-let imagemin = null,
-    imageminSvgo = null
+    cwebp = require('./cwebp.lib'),
+    seq = '.'
 
 /**
  * 使用 imagemin 进行图片压缩
@@ -22,48 +18,8 @@ let imagemin = null,
  * @returns {Promise<*>}
  */
 async function minify(input, destination) {
-    if (imagemin === null) {
-        imagemin = (await import('imagemin')).default
-    }
-    if (imageminSvgo === null) {
-        imageminSvgo = (await import('imagemin-svgo')).default
-    }
-    const plugins = [
-        // imageminMozjpeg({
-        //     // https://www.npmjs.com/package/imagemin-mozjpeg
-        //     // Compression quality, in range 0 (worst) to 100 (perfect).
-        //     quality: '75',
-        //     // 网片加载时从模糊到清楚，而不是从上往下
-        //     progressive: true,
-        // }),
-        // imageminPngquant({
-        //     // https://www.npmjs.com/package/imagemin-pngquant
-        //     // Speed 10 has 5% lower quality, but is about 8 times
-        //     // faster than the default. Speed 11 disables dithering
-        //     // and lowers compression level.
-        //     speed: 10,
-        //     // 颜色通道位深度
-        //     // 图片质量范围，越大质量越高
-        //     quality: [0.6, 0.8],
-        // }),
-        imageminSvgo({
-            // https://www.npmjs.com/package/imagemin-svgo
-            // https://github.com/svg/svgo#configuration
-            // boolean. false by default
-            multipass: true,
-            // 'base64', 'enc' or 'unenc'. 'base64' by default
-            datauri: 'enc',
-            js2svg: {
-                // string with spaces or number of spaces. 4 by default
-                indent: 2,
-                // boolean, false by default
-                pretty: true,
-            },
-        }),
-        imageminWebp({quality: 75}),
-        imageminGifsicle(),
-    ]
-    return imagemin(input, {destination, plugins})
+    const opts = {quality: 75}
+    return cwebp(input, destination, opts)
 }
 
 /**
@@ -103,7 +59,7 @@ async function spendTime(logger, prefix = '', func, ...args) {
  */
 async function convert(input,
                        output = '',
-                       iRegex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
+                       iRegex = /\S+\.(jpe?g|png|webp)/i,
                        skipIfLarge = true,
                        minSize = 1024 * 1024,
                        limit = os.cpus().length - 1,
@@ -118,26 +74,28 @@ async function convert(input,
     limit = limit < 1 ? 1 : limit
     return spendTime(logger, `Readdir ${input}`, readdir, input, iRegex, minSize, logger)
         .then(res => {
+            // copy files
             return spendTime(logger, `Total Skipped files ${res.skip.length}`, _ => {
-                res.skip.map(_ => convertPath(input, _, output))
+                res.skip.map(_ => convertPath(input, _, output, true, false))
                     .forEach(sk => {
                         const prefix = `Copying Skipped file ${sk.input} to ${sk.output}`
                         return spendTime(logger, prefix, copyFileSync, sk.input, sk.output)
                     })
             })
-                .then(ignore => res.files.map(_ => convertPath(input, _, output, false)))
+                // convert path to abs input and output
+                .then(ignore => res.files.map(_ => convertPath(input, _, output, true, true)))
         })
         // https://caolan.github.io/async/v3/docs.html#mapLimit
         .then(async f => await mapLimit(f, limit, async (item, cb) => {
             const {input, output} = item
-            return await spendTime(logger, `Minify ${input}`, minify, [input], output)
+            return await spendTime(logger, `Minify ${input} to ${output}`, minify, input, output)
                 // skip if large
                 .then(files => files.map(_ => _skipIfLarge(_, skipIfLarge)))
+                .then(files => files.forEach(f => logger.info(`Minified file ${f.input} save to ${f.output}`)))
                 .finally(cb)
         }))
         // 展开结果
         .then(_ => _.flat(Infinity))
-        .catch(e => logger.error(e.message))
 }
 
 /**
@@ -146,18 +104,31 @@ async function convert(input,
  * @param filePath 文件路径
  * @param outputBase 输出基本文件夹，如果为空默认为输入基本目录加上 suffix
  * @param keepFilename 是否保留输出文件路径的文件名
- * @param suffix 输出文件目录的后缀
+ * @param dir_suffix 输出文件目录的后缀
+ * @param file_suffix 输出文件后缀名
+ * @param replaceFileSuffix 替换文件名后缀名
  * @returns {{output: string, input: string}}
  */
-function convertPath(inputBase, filePath, outputBase = '', keepFilename = true, suffix = 'minify') {
+function convertPath(inputBase, filePath, outputBase = '', keepFilename = true, replaceFileSuffix = false, dir_suffix = 'minify', file_suffix = 'webp') {
     let input = path.resolve(inputBase, filePath),
         output
     if (outputBase === '') {
-        output = path.resolve(path.dirname(inputBase), `${path.basename(inputBase)}_${suffix}`, filePath)
+        output = path.resolve(path.dirname(inputBase), `${path.basename(inputBase)}_${dir_suffix}`, filePath)
     } else {
         output = path.resolve(__dirname, outputBase, filePath)
     }
-    if (!keepFilename) {
+    if (keepFilename) {
+        if (replaceFileSuffix) {
+            if (path.basename(output).includes(seq)) {
+                const arr = output.split(seq)
+                arr.pop()
+                arr.push(file_suffix)
+                output = arr.join(seq)
+            } else {
+                output = `${output}.${file_suffix}`
+            }
+        }
+    } else {
         output = path.dirname(output)
     }
     return {input, output}
@@ -165,7 +136,8 @@ function convertPath(inputBase, filePath, outputBase = '', keepFilename = true, 
 
 function _skipIfLarge(file, skipIfLarge) {
     if (skipIfLarge) {
-        const {sourcePath, destinationPath} = file
+        const sourcePath = file.input
+        const destinationPath = file.output
         if (fs.statSync(sourcePath).size < fs.statSync(destinationPath).size) {
             copyFileSync(sourcePath, destinationPath)
         }

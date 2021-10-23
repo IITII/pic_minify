@@ -2,13 +2,13 @@
 
 > [https://github.com/IITII/pic_minify](https://github.com/IITII/pic_minify)
 
-* 基于 imagemin 的本地化图片有损压缩工具
-* 支持主流图片格式，png，jpg，jpeg，gif，svg
+* 基于 cwebp 的本地化图片有损压缩工具
+* 支持主流图片格式，PNG, JPEG, TIFF, WebP 和 raw Y'CbCr samples.
 * 并发转换，默认使用 cpu 核数 -1 为并发上限，最低为1
 * 支持文件夹递归读取和文件类型和大小筛选
 
 > 有损压缩，压缩率更高  
-> 暂时不考虑开放 imagemin 的配置，欢迎PR  
+> 暂时不考虑开放 cwebp 的配置，欢迎PR  
 > 对于一些特殊文件名，如 ()[]{}, 需要先进行格式化
 
 ### API
@@ -46,7 +46,7 @@
 const path = require('path'),
     {convert} = require('pic_minify')
 const input = path.resolve(__dirname, './tmp/input'),
-    regex = /\S+\.(jpe?g|png|webp|gif|svg)/i,
+    regex = /\S+\.(jpe?g|png|webp)/i,
     output = path.resolve(__dirname, './tmp/output/sub_output')
 
 convert(input)
@@ -57,7 +57,6 @@ convert(input, regex, output)
     .then(f => console.log(f))
     .catch(e => console.error(e.message))
 ```
-
 
 ### 格式化
 

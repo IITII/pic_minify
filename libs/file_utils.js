@@ -63,7 +63,6 @@ function copyFileSync(sourcePath, destinationPath) {
     if (!fs.existsSync(desDir)) {
         fs.mkdirSync(desDir, {recursive: true})
     }
-    console.log(`Copying ${sourcePath} to ${destinationPath}`)
     fs.copyFileSync(sourcePath, destinationPath)
     return destinationPath
 }
