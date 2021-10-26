@@ -3,7 +3,7 @@
  */
 'use strict'
 const {spawn} = require('child_process'),
-    path = require('path'),
+    os = require('os'),
     cwebpBin = require('cwebp-bin'),
     opts = {'shell': true, 'windowsHide': true},
     {minifyOpts} = require('../config')
@@ -35,8 +35,10 @@ async function bin(webpArgs, ...addition) {
 }
 
 async function cwebp(input, output, options = minifyOpts || {}) {
-    input = path.resolve(__dirname, input)
-    output = path.resolve(__dirname, output)
+    if (os.platform() === 'win32') {
+        input = input.replace(/\\/g, '/')
+        output = output.replace(/\\/g, '/')
+    }
 
     const args = [
         // '-quiet',

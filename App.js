@@ -14,7 +14,7 @@ const {readdir, convertPath, randomFileName} = require('./libs/file_utils.lib')
 
 const config = require('./config'),
     logger = require('./libs/logger.lib'),
-    cacheDir = path.resolve(__dirname, './pic_minify_cache')
+    cacheDir = path.resolve(config.cacheDir, './pic_minify_cache')
 
 async function main(dir) {
     if (!fs.statSync(dir).isDirectory()) {
@@ -79,20 +79,22 @@ async function convert(cacheFiles) {
                 output = randomFileName(input, cacheDir, 'webp')
             return await spendTime(`Minify ${input} to ${output}`, cwebp, input, output)
                 .then(arr => arr.map(_ => {
-                    const inputSize = fs.statSync(_.input).size,
-                        outputSize = fs.statSync(_.output).size
+                    const input1  = _.input,
+                        output1 = _.output
+                    const inputSize = fs.statSync(input1).size,
+                        outputSize = fs.statSync(output1).size
                     // 是否大于限制大小
                     if (outputSize > config.minSize) {
                         // 是否大于输入文件
                         if (config.skipIfLarge && outputSize > inputSize) {
-                            item.cache.push(input)
+                            item.cache.push(input1)
                             res.push(item)
                         } else {
-                            item.cache.push(output)
+                            item.cache.push(output1)
                             more.push(item)
                         }
                     } else {
-                        item.cache.push(input)
+                        item.cache.push(output1)
                         res.push(item)
                     }
                 }))

@@ -8,6 +8,7 @@ const os = require('os'),
 
 let config = {
     input: process.env.MINI_INPUT || './tmp',
+    cacheDir: process.env.MINI_CACHE || __dirname,
     minSize: 1024 * 1024,
     mapLimit: os.cpus().length,
     skipIfLarge: true,
