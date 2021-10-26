@@ -5,7 +5,8 @@
 const {spawn} = require('child_process'),
     path = require('path'),
     cwebpBin = require('cwebp-bin'),
-    opts = {'shell': true, 'windowsHide': true}
+    opts = {'shell': true, 'windowsHide': true},
+    {minifyOpts} = require('../config')
 
 async function bin(webpArgs, ...addition) {
     return await new Promise((resolve, reject) => {
@@ -33,7 +34,7 @@ async function bin(webpArgs, ...addition) {
     })
 }
 
-async function cwebp(input, output, options = {}) {
+async function cwebp(input, output, options = minifyOpts || {}) {
     input = path.resolve(__dirname, input)
     output = path.resolve(__dirname, output)
 

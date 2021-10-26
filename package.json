@@ -2,8 +2,9 @@
   "name": "pic_minify",
   "version": "1.4.2",
   "description": "Image convertor base on cwebp",
-  "main": "index.js",
+  "main": "App.js",
   "scripts": {
+    "start": "node App.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -14,17 +15,10 @@
   ],
   "author": "IITII <ccmejx@gmail.com>",
   "license": "ISC",
-  "devDependencies": {
-    "imagemin-jpegtran": "^7.0.0",
-    "imagemin-mozjpeg": "^9.0.0",
-    "imagemin-pngquant": "^9.0.2",
-    "imagemin": "^8.0.1",
-    "imagemin-gifsicle": "^7.0.0",
-    "imagemin-svgo": "^10.0.0",
-    "imagemin-webp": "^6.0.0"
-  },
   "dependencies": {
     "async": "^3.2.1",
-    "cwebp-bin": "^6.1.2"
+    "cwebp-bin": "^6.1.2",
+    "log4js": "^6.3.0",
+    "uuid": "^8.3.2"
   }
 }

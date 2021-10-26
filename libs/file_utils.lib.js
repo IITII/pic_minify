@@ -2,7 +2,12 @@
 const
     fs = require('fs'),
     path = require('path'),
-    special = '[,],{,},(,)'.split(',')
+    uuid = require('uuid')
+
+const seq = '.'
+const special = '[,],{,},(,)'.split(',')
+const prefix = 'f_'
+const fileNameMap = new Map()
 
 async function readdir(input, regex, minSize, logger = console) {
     return await new Promise(async resolve => {
@@ -115,11 +120,62 @@ function formattedDir(dir) {
     }
 }
 
+/**
+ * 文件路径转换
+ * @param inputBase 输入基本目录
+ * @param filePath 文件路径
+ * @param outputBase 输出基本文件夹，如果为空默认为输入基本目录加上 suffix
+ * @param keepFilename 是否保留输出文件路径的文件名
+ * @param dir_suffix 输出文件目录的后缀
+ * @param file_suffix 输出文件后缀名
+ * @param replaceFileSuffix 替换文件名后缀名
+ * @returns {{output: string, input: string}}
+ */
+function convertPath(inputBase, filePath, outputBase = '', keepFilename = true, replaceFileSuffix = false, dir_suffix = 'minify', file_suffix = 'webp') {
+    let input = path.resolve(inputBase, filePath),
+        output
+    if (outputBase === '') {
+        output = path.resolve(path.dirname(inputBase), `${path.basename(inputBase)}_${dir_suffix}`, filePath)
+    } else {
+        output = path.resolve(__dirname, outputBase, filePath)
+    }
+    if (keepFilename) {
+        if (replaceFileSuffix) {
+            if (path.basename(output).includes(seq)) {
+                const arr = output.split(seq)
+                arr.pop()
+                arr.push(file_suffix)
+                output = arr.join(seq)
+            } else {
+                output = `${output}.${file_suffix}`
+            }
+        }
+    } else {
+        output = path.dirname(output)
+    }
+    return {input, output}
+}
+
+function randomFileName(originName, cacheDir, suffix = '') {
+    // if (fs.existsSync(cacheDir))
+    let basename
+    if (suffix === '' && originName.includes('.')) {
+        suffix = originName.split(seq).pop()
+    }
+    const randomUuid = uuid.v4().replace(/-/g, '')
+    basename = `${prefix}${randomUuid}${seq}${suffix}`
+    if (fileNameMap.has(randomUuid)) {
+        return randomFileName(originName, suffix)
+    } else {
+        const value = path.resolve(cacheDir, basename)
+        fileNameMap.set(randomUuid, value)
+        return value
+    }
+}
+
 module.exports = {
     readdir,
-    replaceAll,
+    convertPath,
     copyFileSync,
-    replaceBeforeCopySync,
-    replaceBeforeRenameFileSync,
-    formattedDir,
+    randomFileName,
 }
