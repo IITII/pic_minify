@@ -87,7 +87,8 @@ async function convert(cacheFiles) {
                     if (outputSize > config.minSize) {
                         // continue
                         const skipLarge = config.skipIfLarge && outputSize > inputSize
-                        if (item.cache.length > config.maxDepth) {
+                        // 每个文件最多处理次数: (0, maxDepth]
+                        if (item.cache.length >= config.maxDepth) {
                             // end
                             // 达到处理限制，按规则选对应的文件
                             if (skipLarge) {

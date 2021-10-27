@@ -17,7 +17,7 @@ let config = {
     mapLimit: os.cpus().length - 1,
     // 转换后文件反而变大，则使用之前的文件
     skipIfLarge: true,
-    // 每个文件最多处理次数
+    // 每个文件最多处理次数: (0, maxDepth]
     maxDepth: process.env.MINI_MAX_DEPTH || 3,
     // 是否拷贝无关文件
     copyOtherFiles: true,
@@ -33,7 +33,7 @@ let config = {
 
 config.input = path.resolve(__dirname, config.input)
 config.mapLimit = config.mapLimit > 0 ? config.mapLimit : 1
-const maxDepth = parseInt(config.maxDepth)
-config.maxDepth = maxDepth || maxDepth > 1 ? maxDepth : 1
+const maxDepth = parseInt(config.maxDepth) || 1
+config.maxDepth = maxDepth > 1 ? maxDepth : 1
 
 module.exports = config
