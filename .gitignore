@@ -1,4 +1,6 @@
 tmp
+*_minify/
+*_cache/
 node_modules
 package-lock.json
 

@@ -79,21 +79,36 @@ async function convert(cacheFiles) {
                 output = randomFileName(input, cacheDir, 'webp')
             return await spendTime(`Minify ${input} to ${output}`, cwebp, input, output)
                 .then(arr => arr.map(_ => {
-                    const input1  = _.input,
+                    const input1 = _.input,
                         output1 = _.output
                     const inputSize = fs.statSync(input1).size,
                         outputSize = fs.statSync(output1).size
                     // 是否大于限制大小
                     if (outputSize > config.minSize) {
-                        // 是否大于输入文件
-                        if (config.skipIfLarge && outputSize > inputSize) {
+                        // continue
+                        const skipLarge = config.skipIfLarge && outputSize > inputSize
+                        if (item.cache.length > config.maxDepth) {
+                            // end
+                            // 达到处理限制，按规则选对应的文件
+                            if (skipLarge) {
+                                item.cache.push(input1)
+                            } else {
+                                item.cache.push(output1)
+                            }
+                            res.push(item)
+                        } else if (skipLarge) {
+                            // end
+                            // 处理后文件变大，不继续处理，选处理前文件
                             item.cache.push(input1)
                             res.push(item)
                         } else {
+                            // continue
+                            // 处理后文件过大，继续处理
                             item.cache.push(output1)
                             more.push(item)
                         }
                     } else {
+                        // end
                         item.cache.push(output1)
                         res.push(item)
                     }
