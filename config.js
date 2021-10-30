@@ -32,6 +32,7 @@ let config = {
 }
 
 config.input = path.resolve(__dirname, config.input)
+config.output = config.output || `${config.input}_minify`
 config.mapLimit = config.mapLimit > 0 ? config.mapLimit : 1
 const maxDepth = parseInt(config.maxDepth) || 1
 config.maxDepth = maxDepth > 1 ? maxDepth : 1
