@@ -8,14 +8,13 @@ const fs = require('fs'),
   {mapLimit} = require('async')
 
 const cwebp = require('./libs/cwebp.lib')
-const {spendTime} = require('./libs/utils.lib')
-const {copyFileSync} = require('./libs/file_utils.lib')
+const {spendTime, time_human} = require('./libs/utils.lib')
+const {copyFileSync, removePre} = require('./libs/file_utils.lib')
 const {readdir, convertPath, randomFileName} = require('./libs/file_utils.lib')
 
 const config = require('./config'),
   logger = require('./libs/logger.lib'),
   cacheDir = path.resolve(config.cacheDir, './pic_minify_cache')
-const {time_human} = require('./libs/utils.lib.js')
 
 async function main(input, output) {
   if (!fs.statSync(input).isDirectory()) {
@@ -58,6 +57,32 @@ async function main(input, output) {
       const from = arrLast(r.cache)
       const to = r.output
       return spendTime(`Copy converted file ${from} to ${to}`, copyFileSync, from, to)
+    })))
+    .then(r => logger.debug(r))
+    .then(_ => logger.info(`Remove cache dir: ${cacheDir}`))
+    .then(_ => fs.rmSync(cacheDir, {recursive: true}))
+}
+
+async function replace_local(input, output) {
+  if (!fs.statSync(input).isDirectory()) {
+    return Promise.reject('Input must a input')
+  }
+  const files = await spendTime(`Readdir ${input}`, readdir, input, config.iRegex, config.minSize, logger)
+  const copyFiles = files.files.map(_ => convertPath(input, _, input, true, true))
+  const cacheFiles = copyFiles.map(_ => {
+    const {input, output} = _
+    return {
+      input, output,
+      cache: [randomFileName(input, cacheDir)],
+    }
+  })
+  return await spendTime(`Convert ${cacheFiles.length} files finish`, convert, cacheFiles)
+    .then(res => Promise.allSettled(res.map(r => {
+      const {input, output, cache} = r
+      const from = arrLast(cache)
+      return Promise.resolve()
+        .then(_ => spendTime(`Remove input file ${input}`, removePre, input, output))
+        .then(_ => spendTime(`Copy converted file ${from} to ${output}`, copyFileSync, from, output))
     })))
     .then(r => logger.debug(r))
     .then(_ => logger.info(`Remove cache dir: ${cacheDir}`))
@@ -112,9 +137,17 @@ async function convert(cacheFiles) {
             targetArr = res
           }
           item.cache.push(target)
+          // res 在此处更新, 因为是一个浅拷贝
           targetArr.push(item)
           removePreTmpFiles(item.cache, target)
         }))
+        .catch(e => {
+          logger.info(e.message)
+          logger.debug(e)
+          // 可能是因为图片分辨率太大导致的, 这种情况下使用原图片即可
+          // 存在重复复制的情况
+          res.push(item)
+        })
         .then(_ => {
           total += 1
           remaining = items.length + more.length - handled
@@ -159,6 +192,9 @@ function removePreTmpFiles(arr, cur) {
   })
 }
 
-spendTime(`pic_minify`, main, config.input, config.output)
+let func = config.mode === 'copy' ? main : replace_local
+Promise.resolve()
+  .then(_ => logger.info(`curr mode is: ${config.mode}`))
+  .then(_ => spendTime(`pic_minify`, func, config.input, config.output))
   // .then(r => logger.debug(r))
   .catch(e => logger.error(e.stack))

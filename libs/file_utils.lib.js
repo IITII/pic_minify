@@ -63,7 +63,10 @@ function replaceAll(string, replacesArr = special, concat = '_') {
 }
 
 function copyFileSync(sourcePath, destinationPath) {
-    if (sourcePath === destinationPath) return destinationPath
+    // same file must be same path and size
+    if (sourcePath === destinationPath && fs.statSync(sourcePath).size === fs.statSync(destinationPath).size) {
+        return destinationPath
+    }
     const desDir = path.dirname(destinationPath)
     if (!fs.existsSync(desDir)) {
         fs.mkdirSync(desDir, {recursive: true})
@@ -173,9 +176,19 @@ function randomFileName(originName, cacheDir, suffix = '') {
     }
 }
 
+function removePre(pre, cur) {
+  // same file must be same path and size
+  if (pre === cur && fs.statSync(pre).size === fs.statSync(cur).size) {
+    return cur
+  }
+  fs.unlinkSync(pre)
+  return cur
+}
+
 module.exports = {
     readdir,
     convertPath,
     copyFileSync,
     randomFileName,
+    removePre,
 }

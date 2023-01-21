@@ -7,6 +7,9 @@ const os = require('os'),
     path = require('path')
 
 let config = {
+    // overwrite: 就地替换原文件夹文件, 删除转换过的文件
+    // copy: 复制所有小文件(受 copyOtherFiles 影响), 并将处理后的文件输出到 config.output 中
+    mode: process.env.MINI_MODE || 'copy',
     // 输入的图片文件夹
     input: process.env.MINI_INPUT || './tmp',
     // 缓存文件夹，会自动创建和删除
