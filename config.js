@@ -16,8 +16,8 @@ let config = {
     cacheDir: process.env.MINI_CACHE || __dirname,
     // 进行转换的最小文件大小
     minSize: 1024 * 1024,
-    // 并发上限
-    mapLimit: os.cpus().length - 1,
+    // 并发上限, 实际上 100% 的 CPU 占用率时间不长, 就不省这点了
+    mapLimit: os.cpus().length,
     // 转换后文件反而变大，则使用之前的文件
     skipIfLarge: true,
     // 每个文件最多处理次数: (0, maxDepth]
@@ -27,7 +27,7 @@ let config = {
     // 图片正则
     iRegex: /\S+\.(jpe?g|png|webp)/i,
     // 拷贝无关文件时不拷贝的文件后缀名
-    cleanFileSuffix: /\.(mp4|mkv|avi)/i,
+    cleanFileSuffix: /\.(mp4|mkv|avi|mov)/i,
     // pass to cwebp configure
     minifyOpts: {
         quality: 75,
