@@ -116,13 +116,14 @@ async function convert(cacheFiles) {
             const skipLarge = config.skipIfLarge && outputSize > inputSize
             // 每个文件最多处理次数: (0, maxDepth]
             if (item.cache.length >= config.maxDepth) {
-              // end
+              // final end
               // 达到处理限制，按规则选对应的文件
               target = skipLarge ? input1 : output1
               targetArr = res
             } else if (skipLarge) {
-              // end
+              // process end
               // 处理后文件变大，不继续处理，选处理前文件
+              logger.debug(`Skip ${input1} because it's larger than original`)
               target = input1
               targetArr = res
             } else {
