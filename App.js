@@ -154,6 +154,8 @@ async function convert(cacheFiles) {
           remaining = items.length + more.length - handled
           let totalTime = Date.now() - starts[0]
           let remainingTime = time_human(totalTime / total * remaining)
+          let inSize = fs.statSync(input).size, outSize = fs.statSync(output).size
+          logger.debug(`Minify: ${path.basename(input)} -> ${path.basename(output)}: ${inSize} -> ${outSize}, %: ${outSize / inSize * 100}%`)
           logger.info(`Round ${round}: files handled/round: ${handled}/${items.length}, remaining: ${remaining}, total: ${total} , total time: ${time_human(totalTime)}, remaining time: ${remainingTime}`)
           handled += 1
         })
@@ -161,7 +163,7 @@ async function convert(cacheFiles) {
         .finally(cb)
     })
       // like this -> [[undefined],[undefined],[undefined]]
-      .then(r => logger.debug(r))
+      // .then(r => logger.debug(r))
       .then(() => {
         let logInfo = time_human(Date.now() - arrLast(starts))
         logger.info(`Round ${round}: Minify ${handled} files, round spend ${logInfo}`)
