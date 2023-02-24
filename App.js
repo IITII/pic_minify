@@ -15,6 +15,7 @@ const {readdir, convertPath, randomFileName} = require('./libs/file_utils.lib')
 const config = require('./config'),
   logger = require('./libs/logger.lib'),
   cacheDir = path.resolve(config.cacheDir, './pic_minify_cache')
+const {size_human} = require('./libs/utils.lib.js')
 
 async function main(input, output) {
   if (!fs.statSync(input).isDirectory()) {
@@ -96,7 +97,7 @@ async function convert(cacheFiles) {
     .then(r => logger.debug(r))
     .catch(e => e)
   const res = []
-  let handled = 1, round = 1, remaining, total = 0, starts = [Date.now()]
+  let handled = 1, round = 1, remaining, total = 0, starts = [Date.now()], inTotal = 0, outTotal = 0
   let items = [].concat(cacheFiles)
   while (items.length !== 0) {
     const more = []
@@ -155,7 +156,9 @@ async function convert(cacheFiles) {
           let totalTime = Date.now() - starts[0]
           let remainingTime = time_human(totalTime / total * remaining)
           let inSize = fs.statSync(input).size, outSize = fs.statSync(output).size
-          logger.debug(`Minify: ${path.basename(input)} -> ${path.basename(output)}: ${inSize} -> ${outSize}, %: ${outSize / inSize * 100}%`)
+          inTotal += inSize
+          outTotal += outSize
+          logger.debug(`MinifySize: ${path.basename(input)} -> ${path.basename(output)}: ${size_human(inSize)} -> ${size_human(outSize)}, %: ${(outSize / inSize * 100).toFixed(2)}%`)
           logger.info(`Round ${round}: files handled/round: ${handled}/${items.length}, remaining: ${remaining}, total: ${total} , total time: ${time_human(totalTime)}, remaining time: ${remainingTime}`)
           handled += 1
         })

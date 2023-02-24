@@ -44,7 +44,26 @@ function time_human(mills, frac = 2) {
     return res
 }
 
+function size_human(bytes, frac = 2) {
+    const kb = 1024
+    const units = [
+        {unit: 'KB', value: kb},
+        {unit: 'MB', value: kb * kb},
+        {unit: 'GB', value: kb * kb * kb},
+        {unit: 'TB', value: kb * kb * kb * kb},
+    ]
+    let res = '', size = bytes, idx = -1
+    idx = units.findIndex(u => u.value > size)
+    idx = idx === -1 ? units.length : idx
+    idx -= 1
+    res = idx === -1 ? `${size}B` : `${(size / units[idx].value).toFixed(frac)}${units[idx].unit}`
+    return res
+}
+
+console.log(size_human(1024 + 512))
+
 module.exports = {
     spendTime,
     time_human,
+    size_human,
 }
