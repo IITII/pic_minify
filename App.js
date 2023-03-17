@@ -59,7 +59,7 @@ async function main(input, output) {
       const to = r.output
       return spendTime(`Copy converted file ${from} to ${to}`, copyFileSync, from, to)
     })))
-    .then(r => logger.debug(r))
+    // .then(r => logger.debug(r))
     .then(_ => logger.info(`Remove cache dir: ${cacheDir}`))
     .then(_ => fs.rmSync(cacheDir, {recursive: true}))
 }
@@ -85,7 +85,7 @@ async function replace_local(input, output) {
         .then(_ => spendTime(`Remove input file ${input}`, removePre, input, output))
         .then(_ => spendTime(`Copy converted file ${from} to ${output}`, copyFileSync, from, output))
     })))
-    .then(r => logger.debug(r))
+    // .then(r => logger.debug(r))
     .then(_ => logger.info(`Remove cache dir: ${cacheDir}`))
     .then(_ => fs.rmSync(cacheDir, {recursive: true}))
 }
@@ -155,10 +155,11 @@ async function convert(cacheFiles) {
           remaining = items.length + more.length - handled
           let totalTime = Date.now() - starts[0]
           let remainingTime = time_human(totalTime / total * remaining)
-          let inSize = fs.statSync(input).size, outSize = fs.statSync(output).size
-          inTotal += inSize
-          outTotal += outSize
-          logger.debug(`MinifySize: ${path.basename(input)} -> ${path.basename(output)}: ${size_human(inSize)} -> ${size_human(outSize)}, %: ${(outSize / inSize * 100).toFixed(2)}%`)
+          // 临时文件已删除
+          // let inSize = fs.statSync(input).size, outSize = fs.statSync(output).size
+          // inTotal += inSize
+          // outTotal += outSize
+          // logger.debug(`MinifySize: ${path.basename(input)} -> ${path.basename(output)}: ${size_human(inSize)} -> ${size_human(outSize)}, %: ${(outSize / inSize * 100).toFixed(2)}%`)
           logger.info(`Round ${round}: files handled/round: ${handled}/${items.length}, remaining: ${remaining}, total: ${total} , total time: ${time_human(totalTime)}, remaining time: ${remainingTime}`)
           handled += 1
         })
