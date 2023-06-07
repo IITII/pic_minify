@@ -1,6 +1,7 @@
 ## pic_minify
 
 > [https://github.com/IITII/pic_minify](https://github.com/IITII/pic_minify)
+> https://developers.google.com/speed/webp?hl=zh-cn  
 
 * 基于 cwebp 的本地化图片有损压缩工具
 * 支持主流图片格式，PNG, JPEG, TIFF, WebP 和 raw Y'CbCr samples.
