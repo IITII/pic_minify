@@ -1,6 +1,6 @@
 ## pic_minify
 
-> [https://github.com/IITII/pic_minify](https://github.com/IITII/pic_minify)
+> [https://github.com/IITII/pic_minify](https://github.com/IITII/pic_minify)  
 > https://developers.google.com/speed/webp?hl=zh-cn  
 
 * 基于 cwebp 的本地化图片有损压缩工具
