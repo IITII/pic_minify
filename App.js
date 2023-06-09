@@ -54,6 +54,12 @@ async function main(input, output) {
     }
   })
   return await spendTime(`Convert ${cacheFiles.length} files finish`, convert, cacheFiles)
+    .then(res => {
+      if (!res) {
+        throw new Error('dir empty')
+      }
+      return res
+    })
     .then(res => Promise.allSettled(res.map(r => {
       const from = arrLast(r.cache)
       const to = r.output

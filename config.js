@@ -17,9 +17,9 @@ let config = {
     // 进行转换的最小文件大小
     minSize: 1024 * 1024,
     // 并发上限, 实际上 100% 的 CPU 占用率时间不长, 就不省这点了
-    mapLimit: os.cpus().length,
+    mapLimit: process.env.MINI_CPU || os.cpus().length,
     // 转换后文件反而变大，则使用之前的文件
-    skipIfLarge: true,
+    skipIfLarge: process.env.MINI_SKIP_IF_LARGE !== 'false',
     // 每个文件最多处理次数: (0, maxDepth]
     maxDepth: process.env.MINI_MAX_DEPTH || 3,
     // 是否拷贝无关文件
@@ -36,6 +36,7 @@ let config = {
 
 config.input = path.resolve(__dirname, config.input)
 config.output = config.output || `${config.input}_minify`
+config.mapLimit = parseInt(config.mapLimit) || 1
 config.mapLimit = config.mapLimit > 0 ? config.mapLimit : 1
 const maxDepth = parseInt(config.maxDepth) || 1
 config.maxDepth = maxDepth > 1 ? maxDepth : 1
