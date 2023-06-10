@@ -10,6 +10,10 @@ on:
       - 'main'
   workflow_dispatch:
 
+env:
+  APP_NAME: pic_minify
+  DOCKERHUB_REPO: sikii/pic_minify
+
 jobs:
   docker:
     runs-on: ubuntu-latest
