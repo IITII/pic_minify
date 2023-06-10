@@ -99,9 +99,9 @@ async function replace_local(input, output) {
 async function convert(cacheFiles) {
   if (cacheFiles.length === 0) return
   // copy image files to cache
-  await Promise.allSettled(cacheFiles.map(_ => spendTime(`Copy ${_.input} to cache ${arrLast(_.cache)}`, copyFileSync, _.input, arrLast(_.cache))))
-    .then(r => logger.debug(r))
-    .catch(e => e)
+  // await Promise.allSettled(cacheFiles.map(_ => spendTime(`Copy ${_.input} to cache ${arrLast(_.cache)}`, copyFileSync, _.input, arrLast(_.cache))))
+  //   .then(r => logger.debug(r))
+  //   .catch(e => e)
   const res = []
   let handled = 1, round = 1, remaining, total = 0, starts = [Date.now()], inTotal = 0, outTotal = 0
   let items = [].concat(cacheFiles)
@@ -110,6 +110,9 @@ async function convert(cacheFiles) {
     await mapLimit(items, config.mapLimit, async (item, cb) => {
       const input = arrLast(item.cache),
         output = randomFileName(input, cacheDir, 'webp')
+      if (item.cache.length === 1 && !fs.existsSync(input)) {
+        await spendTime(`Copy ${item.input} to cache ${input}`, copyFileSync, item.input, input)
+      }
       return await spendTime(`Minify ${input} to ${output}`, cwebp, input, output)
         .then(arr => arr.map(_ => {
           const input1 = _.input,
