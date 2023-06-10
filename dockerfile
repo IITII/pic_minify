@@ -14,7 +14,8 @@ ADD . /mini
 WORKDIR /mini
 volume ["/mini/tmp", "/mini/pic_minify_cache"]
 
-RUN apk add binutils \
-&& npm i
+# RUN apk add binutils \
+# && npm i
+RUN npm i
 
 CMD ["npm", "start"]
