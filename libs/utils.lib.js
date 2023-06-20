@@ -60,8 +60,6 @@ function size_human(bytes, frac = 2) {
     return res
 }
 
-console.log(size_human(1024 + 512))
-
 module.exports = {
     spendTime,
     time_human,

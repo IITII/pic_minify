@@ -14,11 +14,11 @@ let config = {
     input: process.env.MINI_INPUT || './tmp',
     // 缓存文件夹，会自动创建和删除
     cacheDir: process.env.MINI_CACHE || __dirname,
-    // 进行转换的最小文件大小
+    // 进行转换的最小文件大小: 1MB
     minSize: 1024 * 1024,
     // 并发上限, 实际上 100% 的 CPU 占用率时间不长, 就不省这点了
     mapLimit: process.env.MINI_CPU || os.cpus().length,
-    // 转换后文件反而变大，则使用之前的文件
+    // 输出文件大于源文件就跳过
     skipIfLarge: process.env.MINI_SKIP_IF_LARGE !== 'false',
     // 每个文件最多处理次数: (0, maxDepth]
     maxDepth: process.env.MINI_MAX_DEPTH || 3,
@@ -28,9 +28,14 @@ let config = {
     iRegex: /\S+\.(jpe?g|png|webp)/i,
     // 拷贝无关文件时不拷贝的文件后缀名
     cleanFileSuffix: /\.(mp4|mkv|avi|mov)/i,
-    // pass to cwebp configure
-    minifyOpts: {
+    shapeOpts: {
+        // 图片质量
         quality: 75,
+        // 图片格式
+        format: 'webp',
+        // 缩放模式, long_long: 长边长, '': 不使用.
+        resizeMode: 'long_long',
+        resizePx: 3000,
     },
 }
 
