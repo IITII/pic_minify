@@ -15,8 +15,9 @@ const {readdir, convertPath, randomFileName} = require('./libs/file_utils.lib')
 const config = require('./config'),
   logger = require('./libs/logger.lib'),
   cacheDir = path.resolve(config.cacheDir, './pic_minify_cache')
-const {size_human} = require('./libs/utils.lib.js')
+const {size_human, arrLast} = require('./libs/utils.lib.js')
 const sharp = require('sharp')
+const {readMeta} = require('./libs/sharp.utils.js')
 
 async function replace_local(input, output) {
   if (!fs.statSync(input).isDirectory()) {
@@ -135,18 +136,6 @@ async function convertDfs(cacheFiles) {
   return res
 }
 
-function arrLast(arr) {
-  return arr[arr.length - 1]
-}
-
-async function readMeta(input) {
-  return sharp(input).metadata()
-    .then(meta => {
-      const inputMeta = {format: meta.format, width: meta.width, height: meta.height, size: meta.size}
-      inputMeta.size = inputMeta.size || fs.statSync(input).size
-      return inputMeta
-    })
-}
 
 /**
  * 将数组里面 cur 之前的文件删除, 如果不存在 cur 则不删除

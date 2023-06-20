@@ -60,8 +60,14 @@ function size_human(bytes, frac = 2) {
     return res
 }
 
+function arrLast(arr) {
+    return arr[arr.length - 1]
+}
+
+
 module.exports = {
     spendTime,
     time_human,
     size_human,
+    arrLast,
 }
