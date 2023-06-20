@@ -129,20 +129,23 @@ async function convertDfs(cacheFiles) {
   }
 
   await mapLimit(items, config.mapLimit, async (item, cb) => {
-    return await Promise.resolve(item).then(async _ => {
-      const input = _.input
-      const meta = await sharp(input).metadata(),
-        inputMeta = {format: meta.format, width: meta.width, height: meta.height, size: meta.size}
-      inputMeta.size = inputMeta.size || fs.statSync(input).size
-      inputMeta.compressRatio = 0
-      return {..._, inputMeta}
-    }).then(_ => dfs(_)).catch(e => logger.error(e)).finally(cb)
+    return await Promise.resolve(item).then(async _ => ({..._, inputMeta: await readMeta(_.input)}))
+      .then(_ => dfs(_)).catch(e => logger.error(e)).finally(cb)
   })
   return res
 }
 
 function arrLast(arr) {
   return arr[arr.length - 1]
+}
+
+async function readMeta(input) {
+  return sharp(input).metadata()
+    .then(meta => {
+      const inputMeta = {format: meta.format, width: meta.width, height: meta.height, size: meta.size}
+      inputMeta.size = inputMeta.size || fs.statSync(input).size
+      return inputMeta
+    })
 }
 
 /**
