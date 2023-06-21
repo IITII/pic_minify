@@ -6,6 +6,8 @@
 const fs = require('fs')
 const path = require('path')
 const sharp = require('sharp')
+const {spendTime, arrLast} = require('./utils.lib.js')
+const {copyFileSync, randomFileName} = require('./file_utils.lib.js')
 
 async function readMeta(input) {
   return sharp(input).metadata()
@@ -15,10 +17,39 @@ async function readMeta(input) {
       return inputMeta
     })
 }
-
-async function sharpImage(items, shapeOpts) {
+/*
+export interface MetaData {
+    format: string,
+    width: number,
+    height: number,
+    size: number,
+}
+export interface SharpItem {
+    input: string,
+    output: string,
+    cache: string[],
+    timeCost: number[],
+    inputMeta: MetaData,
+    outputMeta: MetaData,
+    compressRate: number,
+}
+ */
+async function sharpImage(item, shapeOpts) {
   let input, output, img, metadata, resizePx, resizeMode
-  input = items.cache.length === 1 && !fs.existsSync(items.cache[0]) ? items.input : items.cache
+  if (item.cache.length === 1) {
+    if (!fs.existsSync(item.cache[0])) {
+      input = item.input
+      output = item.cache[0]
+    } else {
+      input = item.cache[0]
+      output = item.output
+    }
+  }
+  input = arrLast(item.cache),
+    output = randomFileName(input, cacheDir, 'webp')
+  if (item.cache.length === 1 && !fs.existsSync(input)) {
+    await spendTime(`Copy ${item.input} to cache ${path.basename(input)}`, copyFileSync, item.input, input)
+  }
 
 }
 
