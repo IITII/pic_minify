@@ -67,6 +67,7 @@ async function convertDfs(cacheFiles) {
       await spendTime(`Copy ${item.input} to cache ${path.basename(input)}`, copyFileSync, item.input, input)
     }
     return await spendTime(`Minify ${input} to ${path.basename(output)}`, cwebp, input, output)
+    return await spendTime(`Minify ${input} to ${path.basename(output)}`, cwebp, input, output)
       .then(r => {
         handled += 1
         remaining = total - handled
@@ -130,7 +131,8 @@ async function convertDfs(cacheFiles) {
   }
 
   await mapLimit(items, config.mapLimit, async (item, cb) => {
-    return await Promise.resolve(item).then(async _ => ({..._, inputMeta: await readMeta(_.input)}))
+    return await Promise.resolve(item)
+      .then(async _ => ({..._, timeCost: [], inputMeta: await readMeta(_.input)}))
       .then(_ => dfs(_)).catch(e => logger.error(e)).finally(cb)
   })
   return res

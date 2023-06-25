@@ -32,7 +32,7 @@ let config = {
         // 图片质量
         quality: 75,
         // 图片格式
-        format: 'webp',
+        // format: 'webp',
         // 缩放模式, long_long: 长边长, '': 不使用.
         resizeMode: 'long_long',
         resizePx: 3000,
