@@ -21,6 +21,7 @@ function metaWrapper(input, meta) {
   inputMeta.size = inputMeta.size || fs.statSync(input).size
   return inputMeta
 }
+
 /*
 export interface MetaData {
     format: string,
@@ -39,15 +40,14 @@ export interface SharpItem {
 }
  */
 async function sharpImage(item, opts) {
-  let input, output, img, metadata, resizePx, resizeMode, sharpOpts = {}, webpOpts = {}, startTime = Date.now()
-  if (item.cache.length === 1) {
-    if (!fs.existsSync(item.cache[0])) {
-      input = item.input
-      output = item.cache[0]
-    } else {
-      input = item.cache[0]
-      output = arrLast(item.cache)
-    }
+  let input, output, sharpOpts = {}, webpOpts = {}, startTime = Date.now()
+  if (item.cache.length === 0)
+  if (item.cache.length === 1 && !fs.existsSync(item.cache[0])) {
+    input = item.input
+    output = item.cache[0]
+  } else {
+    input = arrLast(item.cache)
+    output = randomFileName(input, cacheDir, 'webp')
   }
   // input = arrLast(item.cache),
   //   output = randomFileName(input, cacheDir, 'webp')
@@ -56,7 +56,7 @@ async function sharpImage(item, opts) {
   //   await spendTime(`Copy ${item.input} to cache ${path.basename(input)}`, copyFileSync, item.input, input)
   // }
   switch (opts.resizeMode) {
-    case "long_long":
+    case 'long_long':
       let long, line
       if (item.inputMeta.width > item.inputMeta.height) {
         long = item.inputMeta.width
@@ -87,18 +87,24 @@ async function sharpImage(item, opts) {
     })
     .catch(e => {
       logger.error(`input: ${input}, output: ${output}`, e)
+      return item
     })
 }
 
-// let input = '/Users/iitii/github/pic_online/public/images/img0_2560x1600.jpg'
-// let item = {input, timeCost: [], cache: ['/Users/iitii/github/pic_minify/tmp/1.webp'], output: '/Users/iitii/github/pic_minify/tmp/2.webp'}
-// readMeta(input).then(m => {
-//   item.inputMeta = m
-//   return item
-// }).then(i => sharpImage(i, {resizePx: 1000, resizeMode: 'long_long', quality: 80}))
-//   .then(_ => logger.info(_))
-//   .catch(e => logger.error(e))
-//
+let input = '/Users/iitii/github/pic_minify/tmp/[adad]. asdsa +(拼接图片) _.webp'
+let item = {
+  input,
+  timeCost: [],
+  cache: ['/Users/iitii/github/pic_minify/tmp/11.webp'],
+  output: '/Users/iitii/github/pic_minify/tmp/2.webp'
+}
+readMeta(input).then(m => {
+  item.inputMeta = m
+  return item
+}).then(i => sharpImage(i, {resizePx: 1000, resizeMode: 'long_long', quality: 80}))
+  .then(_ => logger.info(_))
+  .catch(e => logger.error(e))
+
 // {
 //   input: '/Users/iitii/github/pic_online/public/images/img0_2560x1600.jpg',
 //   timeCost: [ 75 ],
