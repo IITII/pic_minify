@@ -1,3 +1,5 @@
+* Using https://github.com/IITII/caesium-clt for instead
+
 ## pic_minify
 
 > [https://github.com/IITII/pic_minify](https://github.com/IITII/pic_minify)  
